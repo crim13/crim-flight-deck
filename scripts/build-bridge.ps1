@@ -14,13 +14,15 @@ param(
   [string]$SdkPath = '',
   [string]$ManagedDll = '',
   [string]$NativeDll = '',
-  [switch]$NoCopy
+  [switch]$NoCopy,
+  # build somewhere else than apps\simconnect-bridge\bin (the release script does: bin may be in use by a running server)
+  [string]$OutDir = ''
 )
 
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
 $proj = Join-Path $root 'apps\simconnect-bridge\CrimSimConnectBridge.csproj'
-$out = Join-Path $root 'apps\simconnect-bridge\bin'
+$out = if ($OutDir) { $OutDir } else { Join-Path $root 'apps\simconnect-bridge\bin' }
 
 $dotnet = Get-Command dotnet -ErrorAction SilentlyContinue
 if (-not $dotnet) { throw 'dotnet was not found. Install the .NET SDK:  winget install Microsoft.DotNet.SDK.8' }

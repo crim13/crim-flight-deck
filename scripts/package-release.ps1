@@ -59,16 +59,21 @@ $notes = $m.Groups[1].Value.Trim()
 if ($SkipChecks) { Step 'building (checks skipped)'; npm run build; if ($LASTEXITCODE -ne 0) { throw 'build failed' } }
 else { Step 'typecheck, tests, build, smoke test (npm run verify)'; npm run verify; if ($LASTEXITCODE -ne 0) { throw 'verify failed - not releasing' } }
 
-if (-not $SkipBridge) {
+if (-not $OutDir) { $OutDir = Join-Path $root 'release' }
+New-Item -ItemType Directory -Force -Path $OutDir | Out-Null
+
+# The bridge is built into its own folder (apps\simconnect-bridge\bin may be in use by a running server) and without
+# Microsoft's DLLs. -SkipBridge packages the bridge found in bin instead (test packages only).
+$bin = Join-Path $OutDir 'bridge-build'
+if ($SkipBridge) { $bin = Join-Path $root 'apps\simconnect-bridge\bin' }
+else {
   Step 'building the SimConnect bridge'
-  & (Join-Path $PSScriptRoot 'build-bridge.ps1')
+  Remove-Item -Recurse -Force $bin -ErrorAction SilentlyContinue
+  & (Join-Path $PSScriptRoot 'build-bridge.ps1') -NoCopy -OutDir $bin
 }
-$bin = Join-Path $root 'apps\simconnect-bridge\bin'
 if (-not (Test-Path (Join-Path $bin 'CrimSimConnectBridge.exe'))) { throw 'bridge executable missing (run scripts\build-bridge.ps1 or pass -SkipBridge for a test package)' }
 
 # ---- stage ----------------------------------------------------------------------------------------------------------------
-if (-not $OutDir) { $OutDir = Join-Path $root 'release' }
-New-Item -ItemType Directory -Force -Path $OutDir | Out-Null
 $stageParent = Join-Path $OutDir 'stage'
 $stage = Join-Path $stageParent 'CRIM-FlightDeck'
 Remove-Item -Recurse -Force $stageParent -ErrorAction SilentlyContinue
@@ -83,7 +88,10 @@ function Put($rel, $isDir = $false) {
 Step 'staging files'
 Put 'apps\server\dist\server.mjs'
 Put 'apps\web\dist' $true
-foreach ($f in @('CrimSimConnectBridge.exe', 'CrimSimConnectBridge.exe.config')) { Put "apps\simconnect-bridge\bin\$f" }   # no DLLs, on purpose
+New-Item -ItemType Directory -Force -Path (Join-Path $stage 'apps\simconnect-bridge\bin') | Out-Null
+foreach ($f in @('CrimSimConnectBridge.exe', 'CrimSimConnectBridge.exe.config')) {   # no DLLs, on purpose
+  Copy-Item (Join-Path $bin $f) (Join-Path $stage "apps\simconnect-bridge\bin\$f") -Force
+}
 foreach ($s in (Get-ChildItem (Join-Path $root 'scripts') -File | Where-Object { $_.Name -notin @('build-bridge.ps1', 'smoke-test.mjs', 'package-release.ps1') })) { Put "scripts\$($s.Name)" }
 Put 'docs' $true
 foreach ($f in @('LICENSE', 'README.md', 'CHANGELOG.md', 'install.cmd', 'start.cmd', 'update.cmd', 'uninstall.cmd')) { Put $f }
@@ -135,7 +143,16 @@ $lines += @('', 'Not included: Microsoft''s SimConnect DLLs. install.cmd copies 
 $zipName = "CRIM-FlightDeck-v$ver-win-x64.zip"
 $zip = Join-Path $OutDir $zipName
 Remove-Item $zip -Force -ErrorAction SilentlyContinue
-[IO.Compression.ZipFile]::CreateFromDirectory($stage, $zip, [IO.Compression.CompressionLevel]::Optimal, $true)
+# entries are written by hand: Windows PowerShell's ZipFile.CreateFromDirectory stores "dir\file" names, which the zip
+# specification does not allow (other unzip tools then create files with backslashes in their names)
+$fsOut = [IO.File]::Open($zip, [IO.FileMode]::Create)
+$za = New-Object IO.Compression.ZipArchive($fsOut, [IO.Compression.ZipArchiveMode]::Create)
+try {
+  foreach ($f in (Get-ChildItem -Path $stage -Recurse -File)) {
+    $entry = 'CRIM-FlightDeck/' + $f.FullName.Substring($stage.Length + 1).Replace('\', '/')
+    [void][IO.Compression.ZipFileExtensions]::CreateEntryFromFile($za, $f.FullName, $entry, [IO.Compression.CompressionLevel]::Optimal)
+  }
+} finally { $za.Dispose(); $fsOut.Dispose() }
 $hash = (Get-FileHash $zip -Algorithm SHA256).Hash.ToLower()
 $sumFile = Join-Path $OutDir 'SHA256SUMS.txt'
 [IO.File]::WriteAllText($sumFile, "$hash  $zipName`n", (New-Object Text.UTF8Encoding($false)))
