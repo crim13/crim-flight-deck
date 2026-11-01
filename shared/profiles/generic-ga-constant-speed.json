@@ -1,0 +1,155 @@
+{
+  "version": 1,
+  "id": "generic-ga-constant-speed",
+  "name": "Generic GA - constant speed prop",
+  "description": "Single piston engine with throttle, propeller (RPM) and mixture levers (e.g. Beechcraft Bonanza, Cirrus SR22).",
+  "engines": 1,
+  "propeller": "constantSpeed",
+  "match": {
+    "engineTypes": [
+      "piston"
+    ],
+    "engineCountMax": 1,
+    "titleIncludes": [
+      "bonanza",
+      "sr22",
+      "mooney",
+      "pa-46",
+      "malibu"
+    ],
+    "priority": 20
+  },
+  "controls": {
+    "throttle": {
+      "enabled": true
+    },
+    "prop": {
+      "enabled": true
+    },
+    "mixture": {
+      "enabled": true
+    },
+    "trim": {
+      "enabled": true
+    },
+    "spoilers": {
+      "enabled": false,
+      "reason": "No spoilers on this profile"
+    },
+    "flaps": {
+      "enabled": true
+    },
+    "gear": {
+      "enabled": true
+    },
+    "parkingBrake": {
+      "enabled": true
+    },
+    "lightNav": {
+      "enabled": true
+    },
+    "lightBeacon": {
+      "enabled": true
+    },
+    "lightStrobe": {
+      "enabled": true
+    },
+    "lightLanding": {
+      "enabled": true
+    },
+    "lightTaxi": {
+      "enabled": true
+    },
+    "batteryMaster": {
+      "enabled": true
+    },
+    "avionicsMaster": {
+      "enabled": true
+    },
+    "fuelPump": {
+      "enabled": true
+    },
+    "pitotHeat": {
+      "enabled": true
+    },
+    "apMaster": {
+      "enabled": true
+    },
+    "apHeading": {
+      "enabled": true
+    },
+    "apNav": {
+      "enabled": true
+    },
+    "apApproach": {
+      "enabled": true
+    },
+    "apAltitude": {
+      "enabled": true
+    },
+    "apVs": {
+      "enabled": true
+    },
+    "apHeadingSel": {
+      "enabled": true
+    },
+    "apAltitudeSel": {
+      "enabled": true
+    },
+    "apVsSel": {
+      "enabled": true
+    },
+    "com1Active": {
+      "enabled": true
+    },
+    "com1Standby": {
+      "enabled": true
+    },
+    "com2Active": {
+      "enabled": true
+    },
+    "com2Standby": {
+      "enabled": true
+    },
+    "nav1Active": {
+      "enabled": true
+    },
+    "nav1Standby": {
+      "enabled": true
+    },
+    "nav2Active": {
+      "enabled": true
+    },
+    "nav2Standby": {
+      "enabled": true
+    },
+    "xpndrCode": {
+      "enabled": true
+    },
+    "xpndrMode": {
+      "enabled": true
+    },
+    "swapCom1": {
+      "enabled": true
+    },
+    "swapCom2": {
+      "enabled": true
+    },
+    "swapNav1": {
+      "enabled": true
+    },
+    "swapNav2": {
+      "enabled": true
+    },
+    "xpndrIdent": {
+      "enabled": true
+    }
+  },
+  "labels": {
+    "prop": "PROP RPM"
+  },
+  "verification": {
+    "status": "docs",
+    "notes": "Event and SimVar names checked against the MSFS 2024 SDK documentation. Not yet verified live in the simulator - see docs/MANUAL-TESTS.md."
+  }
+}

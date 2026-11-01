@@ -1,0 +1,41 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    The official managed wrapper (Microsoft.FlightSimulator.SimConnect.dll, v12.x) targets
+    .NET Framework 4.6.1 / x64, so this bridge is a .NET Framework 4.8 x64 console process.
+    SDK location: set MSFS2024_SDK, or pass -p:SimConnectManagedDll=... (scripts\build-bridge.ps1 does both).
+  -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net48</TargetFramework>
+    <PlatformTarget>x64</PlatformTarget>
+    <Prefer32Bit>false</Prefer32Bit>
+    <LangVersion>latest</LangVersion>
+    <Nullable>disable</Nullable>
+    <AssemblyName>CrimSimConnectBridge</AssemblyName>
+    <RootNamespace>Crim.Bridge</RootNamespace>
+    <Version>1.0.0</Version>
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+    <SimConnectManagedDll Condition="'$(SimConnectManagedDll)' == ''">$(MSFS2024_SDK)\SimConnect SDK\lib\managed\Microsoft.FlightSimulator.SimConnect.dll</SimConnectManagedDll>
+    <SimConnectNativeDll Condition="'$(SimConnectNativeDll)' == ''">$(MSFS2024_SDK)\SimConnect SDK\lib\SimConnect.dll</SimConnectNativeDll>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="Microsoft.FlightSimulator.SimConnect">
+      <HintPath>$(SimConnectManagedDll)</HintPath>
+      <Private>$(CopySimConnect)</Private>
+    </Reference>
+    <Reference Include="System.Web.Extensions" />
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <CopySimConnect Condition="'$(CopySimConnect)' == ''">true</CopySimConnect>
+  </PropertyGroup>
+
+  <!-- The managed wrapper P/Invokes the native SimConnect.dll; it must sit next to the executable. -->
+  <Target Name="CopyNativeSimConnect" AfterTargets="Build" Condition="'$(CopySimConnect)' == 'true' And Exists('$(SimConnectNativeDll)')">
+    <Copy SourceFiles="$(SimConnectNativeDll)" DestinationFolder="$(OutDir)" />
+  </Target>
+
+</Project>

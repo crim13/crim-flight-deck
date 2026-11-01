@@ -1,0 +1,11 @@
+node_modules/
+dist/
+data/
+bin/
+obj/
+*.log
+.vite/
+release/
+.claude/
+*.crim-tmp
+*.crim-backup*

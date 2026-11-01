@@ -1,0 +1,36 @@
+{
+  "name": "crim-flight-deck",
+  "version": "1.0.0",
+  "private": true,
+  "description": "CRIM Flight Deck - tablet/phone flight controls for MSFS 2024",
+  "license": "GPL-3.0-only",
+  "repository": { "type": "git", "url": "https://github.com/crim13/crim-flight-deck.git" },
+  "homepage": "https://github.com/crim13/crim-flight-deck",
+  "bugs": { "url": "https://github.com/crim13/crim-flight-deck/issues" },
+  "workspaces": [
+    "shared",
+    "apps/server",
+    "apps/web"
+  ],
+  "scripts": {
+    "dev": "concurrently -k -n server,web -c cyan,magenta \"npm run dev -w @crim/server -- --dev\" \"npm run dev -w @crim/web\"",
+    "dev:mock": "concurrently -k -n server,web -c cyan,magenta \"npm run dev -w @crim/server -- --dev --adapter mock\" \"npm run dev -w @crim/web\"",
+    "build": "npm run build -w @crim/web && npm run build -w @crim/server",
+    "build:bridge": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-bridge.ps1",
+    "start": "node apps/server/dist/server.mjs",
+    "start:mock": "node apps/server/dist/server.mjs --adapter mock",
+    "doctor": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/doctor.ps1",
+    "typecheck": "npm run typecheck -w @crim/shared && npm run typecheck -w @crim/server && npm run typecheck -w @crim/web",
+    "test": "vitest run",
+    "smoke": "node scripts/smoke-test.mjs",
+    "verify": "npm run typecheck && npm run test && npm run build && npm run smoke"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.8",
+    "concurrently": "^9.1.0"
+  },
+  "overrides": {
+    "rollup": "npm:@rollup/wasm-node@^4.28.1"
+  }
+}
